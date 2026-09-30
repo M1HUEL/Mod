@@ -27,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
-  private static final List<String> SUBCOMMANDS =
-      Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload");
+  private static final List<String> SUBCOMMANDS
+    = Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload", "announce");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -62,10 +62,26 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         clear(sender, args, 1);
       case "reload" ->
         reload(sender);
+      case "announce" ->
+        announce(sender, args);
       default ->
         usage(sender);
     }
     return true;
+  }
+
+  private void announce(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.announce")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod announce <message>"));
+      return;
+    }
+    String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
+      plugin.getModConfig().getAnnounceFormat().replace("{message}", message)));
   }
 
   private void reload(CommandSender sender) {
@@ -190,13 +206,13 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
     }
 
     target.kick(MINI_MESSAGE.deserialize(plugin.getModConfig().getKickMessage()
-        .replace("{staff}", sender.getName())
-        .replace("{reason}", reason)));
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)));
     plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.KICK, reason, sender.getName());
     plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-            "<red>[KICK] <white>" + target.getName() + " <gray>was kicked by <white>" + sender.getName()
-                + " <dark_gray>(" + reason + ")"),
-        "mod.kick");
+      "<red>[KICK] <white>" + target.getName() + " <gray>was kicked by <white>" + sender.getName()
+      + " <dark_gray>(" + reason + ")"),
+      "mod.kick");
   }
 
   private void unban(CommandSender sender, String[] args) {
@@ -267,8 +283,9 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
 
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
-        "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
-            + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod reload"));
+      "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
+      + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod announce <message>"
+      + " | /mod reload"));
   }
 
   private void deny(CommandSender sender) {
@@ -296,6 +313,9 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       String sub = args[0].toLowerCase();
       if (sub.equals("warn") && !args[1].isEmpty()) {
         return List.of("clear");
+      }
+      if (sub.equals("announce") || sub.equals("reload")) {
+        return Collections.emptyList();
       }
       if (SUBCOMMANDS.contains(sub)) {
         return playerCompletions(args[1]);
