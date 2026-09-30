@@ -15,7 +15,9 @@ public final class ModPlugin extends JavaPlugin {
     saveDefaultConfig();
     modConfig = new ModConfig(this);
     historyManager = new HistoryManager(this);
-    getCommand("mod").setExecutor(new ModCommand(this));
+    ModCommand modCommand = new ModCommand(this);
+    getCommand("mod").setExecutor(modCommand);
+    getCommand("mod").setTabCompleter(modCommand);
     getLogger().info("Mod v" + getPluginMeta().getVersion() + " enabled.");
   }
 

@@ -8,7 +8,9 @@ import com.itson.Mod.history.HistoryType;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import io.papermc.paper.ban.BanListType;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -18,11 +20,14 @@ import org.bukkit.ban.ProfileBanList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class ModCommand implements CommandExecutor {
+public final class ModCommand implements CommandExecutor, TabCompleter {
 
+  private static final List<String> SUBCOMMANDS = Arrays.asList("warn", "ban", "unban", "history", "clear");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -56,6 +61,49 @@ public final class ModCommand implements CommandExecutor {
         usage(sender);
     }
     return true;
+  }
+
+  private void warn(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.warn")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod warn <player> <reason...>"));
+      return;
+    }
+    if (args[1].equalsIgnoreCase("clear")) {
+      clear(sender, args, 2);
+      return;
+    }
+    Player target = Bukkit.getPlayerExact(args[1]);
+    if (target == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
+      return;
+    }
+    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    if (reason.isEmpty()) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod warn <player> <reason...>"));
+      return;
+    }
+
+    HistoryManager manager = plugin.getHistoryManager();
+    manager.addEntry(target.getUniqueId(), HistoryType.WARN, reason, sender.getName());
+    ModConfig config = plugin.getModConfig();
+    int count = manager.getCount(target.getUniqueId(), HistoryType.WARN);
+    int max = config.getMaxWarnings();
+
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
+      "<red>[WARN] <white>" + target.getName() + " <gray>was warned by <white>" + sender.getName()
+      + " <gray>(" + count + "/" + max + ")"),
+      "mod.warn");
+    target.sendMessage(MINI_MESSAGE.deserialize(config.getWarnMessage()
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)));
+
+    if (count >= max) {
+      target.kick(MINI_MESSAGE.deserialize(config.getKickMessage()));
+    }
   }
 
   private void ban(CommandSender sender, String[] args) {
@@ -131,49 +179,6 @@ public final class ModCommand implements CommandExecutor {
     sender.sendMessage(MINI_MESSAGE.deserialize("<green>Unbanned <white>" + name + "<green>."));
   }
 
-  private void warn(CommandSender sender, String[] args) {
-    if (!sender.hasPermission("mod.warn")) {
-      deny(sender);
-      return;
-    }
-    if (args.length < 2) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod warn <player> <reason...>"));
-      return;
-    }
-    if (args[1].equalsIgnoreCase("clear")) {
-      clear(sender, args, 2);
-      return;
-    }
-    Player target = Bukkit.getPlayerExact(args[1]);
-    if (target == null) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
-      return;
-    }
-    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-    if (reason.isEmpty()) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod warn <player> <reason...>"));
-      return;
-    }
-
-    HistoryManager manager = plugin.getHistoryManager();
-    manager.addEntry(target.getUniqueId(), HistoryType.WARN, reason, sender.getName());
-    ModConfig config = plugin.getModConfig();
-    int count = manager.getCount(target.getUniqueId(), HistoryType.WARN);
-    int max = config.getMaxWarnings();
-
-    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-      "<red>[WARN] <white>" + target.getName() + " <gray>was warned by <white>" + sender.getName()
-      + " <gray>(" + count + "/" + max + ")"),
-      "mod.warn");
-    target.sendMessage(MINI_MESSAGE.deserialize(config.getWarnMessage()
-      .replace("{staff}", sender.getName())
-      .replace("{reason}", reason)));
-
-    if (count >= max) {
-      target.kick(MINI_MESSAGE.deserialize(config.getKickMessage()));
-    }
-  }
-
   private void clear(CommandSender sender, String[] args, int playerIndex) {
     if (!sender.hasPermission("mod.history.clear")) {
       deny(sender);
@@ -223,5 +228,55 @@ public final class ModCommand implements CommandExecutor {
 
   private void deny(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize("<red>You do not have permission to do this."));
+  }
+
+  @Override
+  public @Nullable
+  List<String> onTabComplete(
+    @NotNull CommandSender sender,
+    @NotNull Command command,
+    @NotNull String label,
+    @NotNull String[] args) {
+    if (args.length == 1) {
+      String input = args[0].toLowerCase();
+      List<String> completions = new ArrayList<>();
+      for (String sub : SUBCOMMANDS) {
+        if (sub.startsWith(input)) {
+          completions.add(sub);
+        }
+      }
+      return completions;
+    }
+    if (args.length == 2) {
+      String sub = args[0].toLowerCase();
+      if (sub.equals("warn") && !args[1].isEmpty()) {
+        return List.of("clear");
+      }
+      if (SUBCOMMANDS.contains(sub)) {
+        return playerCompletions(args[1]);
+      }
+    }
+    if (args.length == 3 && args[0].equalsIgnoreCase("warn") && args[1].equalsIgnoreCase("clear")) {
+      return playerCompletions(args[2]);
+    }
+    return Collections.emptyList();
+  }
+
+  private List<String> playerCompletions(String input) {
+    List<String> completions = new ArrayList<>();
+    String lower = input.toLowerCase();
+    for (Player player : Bukkit.getOnlinePlayers()) {
+      if (player.getName().toLowerCase().startsWith(lower)) {
+        completions.add(player.getName());
+      }
+    }
+    for (OfflinePlayer offline : Bukkit.getOfflinePlayers()) {
+      String name = offline.getName();
+      if (name != null && name.toLowerCase().startsWith(lower)
+        && completions.stream().noneMatch(n -> n.equalsIgnoreCase(name))) {
+        completions.add(name);
+      }
+    }
+    return completions;
   }
 }
