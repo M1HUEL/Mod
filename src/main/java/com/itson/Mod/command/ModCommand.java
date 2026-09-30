@@ -5,8 +5,10 @@ import com.itson.Mod.config.ModConfig;
 import com.itson.Mod.history.HistoryEntry;
 import com.itson.Mod.history.HistoryManager;
 import com.itson.Mod.history.HistoryType;
+import com.itson.Mod.util.DurationParser;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import io.papermc.paper.ban.BanListType;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,13 +136,15 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       return;
     }
     if (args.length < 2) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <reason...>"));
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <duration> <reason...>"));
       return;
     }
     String name = args[1];
-    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    Duration duration = args.length > 2 ? DurationParser.parse(args[2]) : null;
+    int reasonIndex = duration != null ? 3 : 2;
+    String reason = String.join(" ", Arrays.copyOfRange(args, reasonIndex, args.length));
     if (reason.isEmpty()) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <reason...>"));
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <duration> <reason...>"));
       return;
     }
 
@@ -164,16 +168,20 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       return;
     }
 
+    Instant expires = duration != null ? Instant.now().plus(duration) : null;
     if (target != null) {
       target.kick(MINI_MESSAGE.deserialize(plugin.getModConfig().getBanMessage()
-        .replace("{reason}", reason)));
+        .replace("{reason}", reason)
+        .replace("{expiry}", DurationParser.formatExpiry(duration, plugin.getModConfig().getPermanentText()))));
     }
-    banList.addBan(profile, reason, (Instant) null, sender.getName());
-    plugin.getHistoryManager().addEntry(uuid, HistoryType.BAN, reason, sender.getName());
+    banList.addBan(profile, reason, expires, sender.getName());
+    plugin.getHistoryManager().addEntry(uuid, HistoryType.BAN,
+      duration != null ? reason + " (" + DurationParser.toCompact(duration) + ")" : reason, sender.getName());
     plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getBanBroadcast()
       .replace("{target}", name)
       .replace("{staff}", sender.getName())
-      .replace("{reason}", reason)), "mod.ban");
+      .replace("{reason}", reason)
+      .replace("{expiry}", DurationParser.formatExpiry(duration, plugin.getModConfig().getPermanentText()))), "mod.ban");
   }
 
   private void kick(CommandSender sender, String[] args) {
@@ -212,7 +220,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       return;
     }
     if (args.length < 2) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <reason...>"));
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <duration> <reason...>"));
       return;
     }
     Player target = Bukkit.getPlayerExact(args[1]);
@@ -220,9 +228,11 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
       return;
     }
-    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    Duration duration = args.length > 2 ? DurationParser.parse(args[2]) : null;
+    int reasonIndex = duration != null ? 3 : 2;
+    String reason = String.join(" ", Arrays.copyOfRange(args, reasonIndex, args.length));
     if (reason.isEmpty()) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <reason...>"));
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <duration> <reason...>"));
       return;
     }
     if (plugin.getMutesManager().isMuted(target.getUniqueId())) {
@@ -230,12 +240,14 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       return;
     }
 
-    plugin.getMutesManager().mute(target.getUniqueId(), target.getName(), reason, sender.getName());
-    plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.MUTE, reason, sender.getName());
+    plugin.getMutesManager().mute(target.getUniqueId(), target.getName(), reason, sender.getName(), duration);
+    plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.MUTE,
+      duration != null ? reason + " (" + DurationParser.toCompact(duration) + ")" : reason, sender.getName());
     plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getMuteBroadcast()
       .replace("{target}", target.getName())
       .replace("{staff}", sender.getName())
-      .replace("{reason}", reason)), "mod.mute");
+      .replace("{reason}", reason)
+      .replace("{expiry}", DurationParser.formatExpiry(duration, plugin.getModConfig().getPermanentText()))), "mod.mute");
   }
 
   private void unmute(CommandSender sender, String[] args) {
@@ -332,8 +344,9 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
 
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
-      "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
-      + " | /mod mute <player> <reason...> | /mod unmute <player> | /mod unban <player>"
+      "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <duration> <reason...>"
+      + " | /mod kick <player> <reason...> | /mod mute <player> <duration> <reason...>"
+      + " | /mod unmute <player> | /mod unban <player>"
       + " | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 

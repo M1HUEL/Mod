@@ -7,11 +7,14 @@ warn-message: "<red>You have been warned by <white>{staff}<dark_gray>: <yellow>{
 # Placeholders: {target}, {staff}, {reason}, {count} and {max}.
 warn-broadcast: "<red>[WARN] <white>{target}<gray> was warned by <white>{staff}<gray> ({count}/{max})"
 
-# Screen shown to a banned player. Placeholder: {reason}.
-ban-message: "<red>You have been banned.<newline><gray>Reason: <white>{reason}"
+# Text used for the {expiry} placeholder when a sanction has no expiration.
+permanent-text: "never"
+
+# Screen shown to a banned player. Placeholders: {reason} and {expiry}.
+ban-message: "<red>You have been banned.<newline><gray>Reason: <white>{reason}<newline><gray>Expires: <white>{expiry}"
 # Announcement sent to the staff when a player is banned.
-# Placeholders: {target}, {staff} and {reason}.
-ban-broadcast: "<red>[BAN] <white>{target}<gray> was banned by <white>{staff}<dark_gray> ({reason})"
+# Placeholders: {target}, {staff}, {reason} and {expiry}.
+ban-broadcast: "<red>[BAN] <white>{target}<gray> was banned by <white>{staff}<dark_gray> ({reason}) <dark_gray>until <white>{expiry}"
 
 # Screen shown to a kicked player. Placeholders: {staff} and {reason}.
 kick-message: "<red>Kicked by <white>{staff}<newline><gray>Reason: <white>{reason}"
@@ -25,8 +28,8 @@ warnings-kick-message: "<red>You have been kicked for receiving too many warning
 # Message shown to a muted player when they try to chat. Placeholder: {reason}.
 mute-message: "<red>You are muted.<newline><gray>Reason: <white>{reason}"
 # Announcement sent to the staff when a player is muted.
-# Placeholders: {target}, {staff} and {reason}.
-mute-broadcast: "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<dark_gray> ({reason})"
+# Placeholders: {target}, {staff}, {reason} and {expiry}.
+mute-broadcast: "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<dark_gray> ({reason}) <dark_gray>until <white>{expiry}"
 # Announcement sent to the staff when a player is unmuted.
 # Placeholders: {target} and {staff}.
 unmute-broadcast: "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}"

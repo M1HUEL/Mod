@@ -17,6 +17,7 @@ public final class ModConfig {
   private String muteBroadcast;
   private String unmuteBroadcast;
   private String reportFormat;
+  private String permanentText;
 
   public ModConfig(JavaPlugin plugin) {
     this.plugin = plugin;
@@ -48,6 +49,11 @@ public final class ModConfig {
       .getString("unmute-broadcast", "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}");
     reportFormat = plugin.getConfig()
       .getString("report-format", "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}");
+    permanentText = plugin.getConfig().getString("permanent-text", "never");
+  }
+
+  public String getPermanentText() {
+    return permanentText;
   }
 
   public int getMaxWarnings() {

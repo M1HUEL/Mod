@@ -3,6 +3,7 @@ package com.itson.Mod.mute;
 import com.itson.Mod.ModPlugin;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -28,12 +29,17 @@ public final class MutesManager {
   }
 
   public boolean isMuted(UUID uuid) {
-    return mutes.isConfigurationSection(section(uuid));
+    return getMute(uuid) != null;
   }
 
   public Mute getMute(UUID uuid) {
     ConfigurationSection section = mutes.getConfigurationSection(section(uuid));
     if (section == null) {
+      return null;
+    }
+    Long expires = section.getLong("expires");
+    if (expires != null && expires > 0L && System.currentTimeMillis() >= expires) {
+      unmute(uuid);
       return null;
     }
     return new Mute(
@@ -43,12 +49,17 @@ public final class MutesManager {
       section.getString("date", ""));
   }
 
-  public void mute(UUID uuid, String name, String reason, String staff) {
+  public void mute(UUID uuid, String name, String reason, String staff, Duration duration) {
     String section = section(uuid);
     mutes.set(section + ".name", name);
     mutes.set(section + ".reason", reason);
     mutes.set(section + ".staff", staff);
     mutes.set(section + ".date", LocalDateTime.now().format(DATE_FORMAT));
+    if (duration == null) {
+      mutes.set(section + ".expires", null);
+    } else {
+      mutes.set(section + ".expires", System.currentTimeMillis() + duration.toMillis());
+    }
     save();
   }
 
