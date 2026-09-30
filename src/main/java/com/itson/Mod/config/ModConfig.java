@@ -10,7 +10,6 @@ public final class ModConfig {
   private String banMessage;
   private String kickMessage;
   private String warningsKickMessage;
-  private String announceFormat;
   private String reportFormat;
 
   public ModConfig(JavaPlugin plugin) {
@@ -29,8 +28,6 @@ public final class ModConfig {
       .getString("kick-message", "<red>Kicked by <white>{staff}<newline><gray>Reason: <white>{reason}");
     warningsKickMessage = plugin.getConfig()
       .getString("warnings-kick-message", "<red>You have been kicked for receiving too many warnings.");
-    announceFormat = plugin.getConfig()
-      .getString("announce-format", "<gold>[ANNOUNCE]<reset> <white>{message}");
     reportFormat = plugin.getConfig()
       .getString("report-format", "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}");
   }
@@ -53,10 +50,6 @@ public final class ModConfig {
 
   public String getWarningsKickMessage() {
     return warningsKickMessage;
-  }
-
-  public String getAnnounceFormat() {
-    return announceFormat;
   }
 
   public String getReportFormat() {

@@ -8,7 +8,5 @@ ban-message: "<red>You have been banned.<newline><gray>Reason: <white>{reason}"
 kick-message: "<red>Kicked by <white>{staff}<newline><gray>Reason: <white>{reason}"
 # Kick reason used when the maximum number of warnings is reached.
 warnings-kick-message: "<red>You have been kicked for receiving too many warnings."
-# Format used by /mod announce. Placeholder: {message}.
-announce-format: "<gold>[ANNOUNCE]<reset> <white>{message}"
 # Format used by /report. Placeholders: {player}, {target} and {reason}.
 report-format: "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}"

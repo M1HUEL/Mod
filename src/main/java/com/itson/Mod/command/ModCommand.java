@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
   private static final List<String> SUBCOMMANDS
-    = Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload", "announce");
+    = Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -62,26 +62,10 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         clear(sender, args, 1);
       case "reload" ->
         reload(sender);
-      case "announce" ->
-        announce(sender, args);
       default ->
         usage(sender);
     }
     return true;
-  }
-
-  private void announce(CommandSender sender, String[] args) {
-    if (!sender.hasPermission("mod.announce")) {
-      deny(sender);
-      return;
-    }
-    if (args.length < 2) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod announce <message>"));
-      return;
-    }
-    String message = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-      plugin.getModConfig().getAnnounceFormat().replace("{message}", message)));
   }
 
   private void reload(CommandSender sender) {
@@ -284,8 +268,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
       "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
-      + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod announce <message>"
-      + " | /mod reload"));
+      + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 
   private void deny(CommandSender sender) {
@@ -314,7 +297,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       if (sub.equals("warn") && !args[1].isEmpty()) {
         return List.of("clear");
       }
-      if (sub.equals("announce") || sub.equals("reload")) {
+      if (sub.equals("reload")) {
         return Collections.emptyList();
       }
       if (SUBCOMMANDS.contains(sub)) {

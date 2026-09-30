@@ -29,9 +29,6 @@ permissions:
   mod.kick:
     description: Allows kicking players.
     default: op
-  mod.announce:
-    description: Allows sending server announcements.
-    default: op
   mod.history:
     description: Allows viewing a player's history.
     default: op
