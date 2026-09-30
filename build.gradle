@@ -1,0 +1,50 @@
+plugins {
+  id 'java'
+}
+
+group = 'com.itson'
+version = '1.0.0'
+description = 'Mod plugin for Paper'
+
+repositories {
+  mavenCentral()
+  maven {
+    name = 'papermc'
+    url = 'https://repo.papermc.io/repository/maven-public/'
+  }
+}
+
+dependencies {
+  compileOnly libs.paper.api
+
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(25)
+  }
+}
+
+tasks.withType(JavaCompile).configureEach {
+  options.encoding = 'UTF-8'
+  options.release = 25
+}
+
+tasks.named('processResources', ProcessResources).configure {
+  def expansions = [
+    name       : rootProject.name,
+    version    : project.version,
+    description: project.description,
+    apiVersion : '26.2'
+  ]
+  inputs.properties expansions
+  filesMatching('plugin.yml') {
+    expand expansions
+  }
+}
+
+tasks.named('test', Test) {
+  useJUnitPlatform()
+}

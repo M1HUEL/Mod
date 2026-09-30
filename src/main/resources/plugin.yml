@@ -1,0 +1,6 @@
+name: '${name}'
+version: '${version}'
+description: '${description}'
+main: com.itson.Mod.ModPlugin
+api-version: '${apiVersion}'
+author: M1HUEL
