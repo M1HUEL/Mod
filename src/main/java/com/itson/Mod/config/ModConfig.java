@@ -11,6 +11,7 @@ public final class ModConfig {
   private String kickMessage;
   private String warningsKickMessage;
   private String announceFormat;
+  private String reportFormat;
 
   public ModConfig(JavaPlugin plugin) {
     this.plugin = plugin;
@@ -30,6 +31,8 @@ public final class ModConfig {
       .getString("warnings-kick-message", "<red>You have been kicked for receiving too many warnings.");
     announceFormat = plugin.getConfig()
       .getString("announce-format", "<gold>[ANNOUNCE]<reset> <white>{message}");
+    reportFormat = plugin.getConfig()
+      .getString("report-format", "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}");
   }
 
   public int getMaxWarnings() {
@@ -54,5 +57,9 @@ public final class ModConfig {
 
   public String getAnnounceFormat() {
     return announceFormat;
+  }
+
+  public String getReportFormat() {
+    return reportFormat;
   }
 }

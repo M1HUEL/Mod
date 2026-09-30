@@ -7,7 +7,16 @@ author: M1HUEL
 commands:
   mod:
     description: Moderation commands.
+  report:
+    description: Report a player to the staff.
+    permission: mod.report
 permissions:
+  mod.report:
+    description: Allows reporting players.
+    default: true
+  mod.report.notify:
+    description: Allows receiving player reports.
+    default: op
   mod.reload:
     description: Allows reloading the Mod configuration.
     default: op
