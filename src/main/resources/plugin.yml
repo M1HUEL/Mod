@@ -11,6 +11,9 @@ permissions:
   mod.warn:
     description: Allows warning players.
     default: op
+  mod.ban:
+    description: Allows banning and unbanning players.
+    default: op
   mod.history:
     description: Allows viewing a player's history.
     default: op

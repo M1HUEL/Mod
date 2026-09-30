@@ -5,11 +5,16 @@ import com.itson.Mod.config.ModConfig;
 import com.itson.Mod.history.HistoryEntry;
 import com.itson.Mod.history.HistoryManager;
 import com.itson.Mod.history.HistoryType;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import io.papermc.paper.ban.BanListType;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.ban.ProfileBanList;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -39,6 +44,10 @@ public final class ModCommand implements CommandExecutor {
     switch (args[0].toLowerCase()) {
       case "warn" ->
         warn(sender, args);
+      case "ban" ->
+        ban(sender, args);
+      case "unban" ->
+        unban(sender, args);
       case "history" ->
         history(sender, args);
       case "clear" ->
@@ -47,6 +56,79 @@ public final class ModCommand implements CommandExecutor {
         usage(sender);
     }
     return true;
+  }
+
+  private void ban(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.ban")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <reason...>"));
+      return;
+    }
+    String name = args[1];
+    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    if (reason.isEmpty()) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod ban <player> <reason...>"));
+      return;
+    }
+
+    Player target = Bukkit.getPlayerExact(name);
+    UUID uuid;
+    if (target != null) {
+      uuid = target.getUniqueId();
+    } else {
+      OfflinePlayer offline = Bukkit.getOfflinePlayerIfCached(name);
+      if (offline == null) {
+        sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + name + " <red>was never seen on this server."));
+        return;
+      }
+      uuid = offline.getUniqueId();
+    }
+
+    ProfileBanList banList = Bukkit.getBanList(BanListType.PROFILE);
+    PlayerProfile profile = Bukkit.createProfile(uuid, name);
+    if (banList.isBanned(profile)) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + name + " <red>is already banned."));
+      return;
+    }
+
+    if (target != null) {
+      target.kick(MINI_MESSAGE.deserialize(plugin.getModConfig().getBanMessage()
+        .replace("{reason}", reason)));
+    }
+    banList.addBan(profile, reason, (Instant) null, sender.getName());
+    plugin.getHistoryManager().addEntry(uuid, HistoryType.BAN, reason, sender.getName());
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
+      "<red>[BAN] <white>" + name + " <gray>was banned by <white>" + sender.getName()
+      + " <dark_gray>(" + reason + ")"),
+      "mod.ban");
+  }
+
+  private void unban(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.ban")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod unban <player>"));
+      return;
+    }
+    String name = args[1];
+    OfflinePlayer offline = Bukkit.getOfflinePlayerIfCached(name);
+    if (offline == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + name + " <red>was never seen on this server."));
+      return;
+    }
+    ProfileBanList banList = Bukkit.getBanList(BanListType.PROFILE);
+    PlayerProfile profile = Bukkit.createProfile(offline.getUniqueId(), name);
+    if (!banList.isBanned(profile)) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + name + " <red>is not banned."));
+      return;
+    }
+    banList.pardon(profile);
+    sender.sendMessage(MINI_MESSAGE.deserialize("<green>Unbanned <white>" + name + "<green>."));
   }
 
   private void warn(CommandSender sender, String[] args) {
@@ -135,7 +217,8 @@ public final class ModCommand implements CommandExecutor {
 
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
-      "<red>Usage: /mod warn <player> <reason...> | /mod clear <player> | /mod history <player>"));
+      "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod unban <player>"
+      + " | /mod clear <player> | /mod history <player>"));
   }
 
   private void deny(CommandSender sender) {

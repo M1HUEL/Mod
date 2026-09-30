@@ -7,6 +7,7 @@ public final class ModConfig {
   private final JavaPlugin plugin;
   private int maxWarnings;
   private String warnMessage;
+  private String banMessage;
   private String kickMessage;
 
   public ModConfig(JavaPlugin plugin) {
@@ -19,6 +20,8 @@ public final class ModConfig {
     maxWarnings = Math.max(1, plugin.getConfig().getInt("max-warnings", 3));
     warnMessage = plugin.getConfig()
       .getString("warn-message", "<red>You have been warned by <white>{staff}<dark_gray>: <yellow>{reason}");
+    banMessage = plugin.getConfig()
+      .getString("ban-message", "<red>You have been banned.<newline><gray>Reason: <white>{reason}");
     kickMessage = plugin.getConfig()
       .getString("kick-message", "<red>You have been kicked for receiving too many warnings.");
   }
@@ -29,6 +32,10 @@ public final class ModConfig {
 
   public String getWarnMessage() {
     return warnMessage;
+  }
+
+  public String getBanMessage() {
+    return banMessage;
   }
 
   public String getKickMessage() {
