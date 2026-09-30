@@ -11,9 +11,9 @@ permissions:
   mod.warn:
     description: Allows warning players.
     default: op
-  mod.warn.clear:
-    description: Allows clearing a player's warnings.
-    default: op
   mod.history:
-    description: Allows viewing a player's warning history.
+    description: Allows viewing a player's history.
+    default: op
+  mod.history.clear:
+    description: Allows clearing a player's whole history.
     default: op

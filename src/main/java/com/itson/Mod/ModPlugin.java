@@ -2,19 +2,19 @@ package com.itson.Mod;
 
 import com.itson.Mod.command.ModCommand;
 import com.itson.Mod.config.ModConfig;
-import com.itson.Mod.warn.WarningsManager;
+import com.itson.Mod.history.HistoryManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ModPlugin extends JavaPlugin {
 
   private ModConfig modConfig;
-  private WarningsManager warningsManager;
+  private HistoryManager historyManager;
 
   @Override
   public void onEnable() {
     saveDefaultConfig();
     modConfig = new ModConfig(this);
-    warningsManager = new WarningsManager(this);
+    historyManager = new HistoryManager(this);
     getCommand("mod").setExecutor(new ModCommand(this));
     getLogger().info("Mod v" + getPluginMeta().getVersion() + " enabled.");
   }
@@ -28,7 +28,7 @@ public final class ModPlugin extends JavaPlugin {
     return modConfig;
   }
 
-  public WarningsManager getWarningsManager() {
-    return warningsManager;
+  public HistoryManager getHistoryManager() {
+    return historyManager;
   }
 }

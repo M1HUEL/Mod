@@ -2,8 +2,9 @@ package com.itson.Mod.command;
 
 import com.itson.Mod.ModPlugin;
 import com.itson.Mod.config.ModConfig;
-import com.itson.Mod.warn.Warning;
-import com.itson.Mod.warn.WarningsManager;
+import com.itson.Mod.history.HistoryEntry;
+import com.itson.Mod.history.HistoryManager;
+import com.itson.Mod.history.HistoryType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,8 @@ public final class ModCommand implements CommandExecutor {
         warn(sender, args);
       case "history" ->
         history(sender, args);
+      case "clear" ->
+        clear(sender, args, 1);
       default ->
         usage(sender);
     }
@@ -56,7 +59,7 @@ public final class ModCommand implements CommandExecutor {
       return;
     }
     if (args[1].equalsIgnoreCase("clear")) {
-      clear(sender, args);
+      clear(sender, args, 2);
       return;
     }
     Player target = Bukkit.getPlayerExact(args[1]);
@@ -70,10 +73,10 @@ public final class ModCommand implements CommandExecutor {
       return;
     }
 
-    WarningsManager manager = plugin.getWarningsManager();
-    manager.addWarning(target.getUniqueId(), reason, sender.getName());
+    HistoryManager manager = plugin.getHistoryManager();
+    manager.addEntry(target.getUniqueId(), HistoryType.WARN, reason, sender.getName());
     ModConfig config = plugin.getModConfig();
-    int count = manager.getWarningCount(target.getUniqueId());
+    int count = manager.getCount(target.getUniqueId(), HistoryType.WARN);
     int max = config.getMaxWarnings();
 
     plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
@@ -89,18 +92,19 @@ public final class ModCommand implements CommandExecutor {
     }
   }
 
-  private void clear(CommandSender sender, String[] args) {
-    if (!sender.hasPermission("mod.warn.clear")) {
+  private void clear(CommandSender sender, String[] args, int playerIndex) {
+    if (!sender.hasPermission("mod.history.clear")) {
       deny(sender);
       return;
     }
-    if (args.length < 3) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod warn clear <player>"));
+    if (args.length < playerIndex + 1) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod clear <player>"));
       return;
     }
-    UUID uuid = Bukkit.getOfflinePlayer(args[2]).getUniqueId();
-    plugin.getWarningsManager().clearWarnings(uuid);
-    sender.sendMessage(MINI_MESSAGE.deserialize("<green>Cleared all warnings for <white>" + args[2] + "<green>."));
+    UUID uuid = Bukkit.getOfflinePlayer(args[playerIndex]).getUniqueId();
+    plugin.getHistoryManager().clearHistory(uuid);
+    sender.sendMessage(
+      MINI_MESSAGE.deserialize("<green>Cleared the whole history of <white>" + args[playerIndex] + "<green>."));
   }
 
   private void history(CommandSender sender, String[] args) {
@@ -113,24 +117,25 @@ public final class ModCommand implements CommandExecutor {
       return;
     }
     UUID uuid = Bukkit.getOfflinePlayer(args[1]).getUniqueId();
-    WarningsManager manager = plugin.getWarningsManager();
-    List<Warning> warnings = manager.getWarnings(uuid);
-    if (warnings.isEmpty()) {
+    HistoryManager manager = plugin.getHistoryManager();
+    List<HistoryEntry> entries = manager.getHistory(uuid);
+    if (entries.isEmpty()) {
       sender.sendMessage(MINI_MESSAGE.deserialize("<green>" + args[1] + " <gray>has no history."));
       return;
     }
     sender.sendMessage(MINI_MESSAGE.deserialize("<yellow>History of <white>" + args[1] + "<yellow>:"));
     int index = 1;
-    for (Warning warning : warnings) {
-      sender.sendMessage(MINI_MESSAGE.deserialize("<gray>" + index + ". <white>" + warning.reason()
-        + " <dark_gray>(<gray>" + warning.staff() + ", " + warning.date() + "<dark_gray>)"));
+    for (HistoryEntry entry : entries) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<gray>" + index + ". <red>" + entry.type().name()
+        + " <white>" + entry.reason() + " <dark_gray>(<gray>" + entry.staff() + ", " + entry.date()
+        + "<dark_gray>)"));
       index++;
     }
   }
 
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
-      "<red>Usage: /mod warn <player> <reason...> | /mod warn clear <player> | /mod history <player>"));
+      "<red>Usage: /mod warn <player> <reason...> | /mod clear <player> | /mod history <player>"));
   }
 
   private void deny(CommandSender sender) {
