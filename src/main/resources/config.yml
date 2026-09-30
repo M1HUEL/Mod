@@ -4,5 +4,7 @@ max-warnings: 3
 warn-message: "<red>You have been warned by <white>{staff}<dark_gray>: <yellow>{reason}"
 # Screen shown to a banned player. Placeholder: {reason}.
 ban-message: "<red>You have been banned.<newline><gray>Reason: <white>{reason}"
+# Screen shown to a kicked player. Placeholders: {staff} and {reason}.
+kick-message: "<red>Kicked by <white>{staff}<newline><gray>Reason: <white>{reason}"
 # Kick reason used when the maximum number of warnings is reached.
-kick-message: "<red>You have been kicked for receiving too many warnings."
+warnings-kick-message: "<red>You have been kicked for receiving too many warnings."

@@ -27,7 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
-  private static final List<String> SUBCOMMANDS = Arrays.asList("warn", "ban", "unban", "history", "clear", "reload");
+  private static final List<String> SUBCOMMANDS =
+      Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -51,6 +52,8 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         warn(sender, args);
       case "ban" ->
         ban(sender, args);
+      case "kick" ->
+        kick(sender, args);
       case "unban" ->
         unban(sender, args);
       case "history" ->
@@ -114,7 +117,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       .replace("{reason}", reason)));
 
     if (count >= max) {
-      target.kick(MINI_MESSAGE.deserialize(config.getKickMessage()));
+      target.kick(MINI_MESSAGE.deserialize(config.getWarningsKickMessage()));
     }
   }
 
@@ -164,6 +167,36 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       "<red>[BAN] <white>" + name + " <gray>was banned by <white>" + sender.getName()
       + " <dark_gray>(" + reason + ")"),
       "mod.ban");
+  }
+
+  private void kick(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.kick")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod kick <player> <reason...>"));
+      return;
+    }
+    Player target = Bukkit.getPlayerExact(args[1]);
+    if (target == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
+      return;
+    }
+    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    if (reason.isEmpty()) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod kick <player> <reason...>"));
+      return;
+    }
+
+    target.kick(MINI_MESSAGE.deserialize(plugin.getModConfig().getKickMessage()
+        .replace("{staff}", sender.getName())
+        .replace("{reason}", reason)));
+    plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.KICK, reason, sender.getName());
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
+            "<red>[KICK] <white>" + target.getName() + " <gray>was kicked by <white>" + sender.getName()
+                + " <dark_gray>(" + reason + ")"),
+        "mod.kick");
   }
 
   private void unban(CommandSender sender, String[] args) {
@@ -234,8 +267,8 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
 
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
-      "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod unban <player>"
-      + " | /mod clear <player> | /mod history <player> | /mod reload"));
+        "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
+            + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 
   private void deny(CommandSender sender) {
