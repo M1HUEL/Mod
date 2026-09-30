@@ -4,3 +4,16 @@ description: '${description}'
 main: com.itson.Mod.ModPlugin
 api-version: '${apiVersion}'
 author: M1HUEL
+commands:
+  mod:
+    description: Moderation commands.
+permissions:
+  mod.warn:
+    description: Allows warning players.
+    default: op
+  mod.warn.clear:
+    description: Allows clearing a player's warnings.
+    default: op
+  mod.history:
+    description: Allows viewing a player's warning history.
+    default: op

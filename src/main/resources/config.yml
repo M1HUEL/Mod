@@ -1,0 +1,6 @@
+# Maximum warnings before a player is kicked automatically.
+max-warnings: 3
+# Message sent to the warned player. Placeholders: {staff} and {reason}.
+warn-message: "<red>You have been warned by <white>{staff}<dark_gray>: <yellow>{reason}"
+# Kick reason used when the maximum number of warnings is reached.
+kick-message: "<red>You have been kicked for receiving too many warnings."
