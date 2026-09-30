@@ -18,12 +18,16 @@ public final class HistoryManager {
 
   private final ModPlugin plugin;
   private final File file;
-  private final YamlConfiguration history;
+  private YamlConfiguration history;
 
   public HistoryManager(ModPlugin plugin) {
     this.plugin = plugin;
     this.file = new File(plugin.getDataFolder(), "history.yml");
     this.history = YamlConfiguration.loadConfiguration(file);
+  }
+
+  public void reload() {
+    history = YamlConfiguration.loadConfiguration(file);
   }
 
   public List<HistoryEntry> getHistory(UUID uuid) {

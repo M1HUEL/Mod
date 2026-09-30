@@ -8,6 +8,9 @@ commands:
   mod:
     description: Moderation commands.
 permissions:
+  mod.reload:
+    description: Allows reloading the Mod configuration.
+    default: op
   mod.warn:
     description: Allows warning players.
     default: op

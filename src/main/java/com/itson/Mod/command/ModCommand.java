@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
-  private static final List<String> SUBCOMMANDS = Arrays.asList("warn", "ban", "unban", "history", "clear");
+  private static final List<String> SUBCOMMANDS = Arrays.asList("warn", "ban", "unban", "history", "clear", "reload");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -57,10 +57,22 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         history(sender, args);
       case "clear" ->
         clear(sender, args, 1);
+      case "reload" ->
+        reload(sender);
       default ->
         usage(sender);
     }
     return true;
+  }
+
+  private void reload(CommandSender sender) {
+    if (!sender.hasPermission("mod.reload")) {
+      deny(sender);
+      return;
+    }
+    plugin.getModConfig().reload();
+    plugin.getHistoryManager().reload();
+    sender.sendMessage(MINI_MESSAGE.deserialize("<green>Mod configuration reloaded."));
   }
 
   private void warn(CommandSender sender, String[] args) {
@@ -223,7 +235,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
       "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod unban <player>"
-      + " | /mod clear <player> | /mod history <player>"));
+      + " | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 
   private void deny(CommandSender sender) {
