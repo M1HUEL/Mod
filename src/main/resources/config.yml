@@ -1,12 +1,26 @@
 # Maximum warnings before a player is kicked automatically.
 max-warnings: 3
+
 # Message sent to the warned player. Placeholders: {staff} and {reason}.
 warn-message: "<red>You have been warned by <white>{staff}<dark_gray>: <yellow>{reason}"
+# Announcement sent to the staff when a player is warned.
+# Placeholders: {target}, {staff}, {reason}, {count} and {max}.
+warn-broadcast: "<red>[WARN] <white>{target}<gray> was warned by <white>{staff}<gray> ({count}/{max})"
+
 # Screen shown to a banned player. Placeholder: {reason}.
 ban-message: "<red>You have been banned.<newline><gray>Reason: <white>{reason}"
+# Announcement sent to the staff when a player is banned.
+# Placeholders: {target}, {staff} and {reason}.
+ban-broadcast: "<red>[BAN] <white>{target}<gray> was banned by <white>{staff}<dark_gray> ({reason})"
+
 # Screen shown to a kicked player. Placeholders: {staff} and {reason}.
 kick-message: "<red>Kicked by <white>{staff}<newline><gray>Reason: <white>{reason}"
+# Announcement sent to the staff when a player is kicked.
+# Placeholders: {target}, {staff} and {reason}.
+kick-broadcast: "<red>[KICK] <white>{target}<gray> was kicked by <white>{staff}<dark_gray> ({reason})"
+
 # Kick reason used when the maximum number of warnings is reached.
 warnings-kick-message: "<red>You have been kicked for receiving too many warnings."
+
 # Format used by /report. Placeholders: {player}, {target} and {reason}.
 report-format: "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}"

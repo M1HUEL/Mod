@@ -108,10 +108,12 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
     int count = manager.getCount(target.getUniqueId(), HistoryType.WARN);
     int max = config.getMaxWarnings();
 
-    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-      "<red>[WARN] <white>" + target.getName() + " <gray>was warned by <white>" + sender.getName()
-      + " <gray>(" + count + "/" + max + ")"),
-      "mod.warn");
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(config.getWarnBroadcast()
+      .replace("{target}", target.getName())
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)
+      .replace("{count}", String.valueOf(count))
+      .replace("{max}", String.valueOf(max))), "mod.warn");
     target.sendMessage(MINI_MESSAGE.deserialize(config.getWarnMessage()
       .replace("{staff}", sender.getName())
       .replace("{reason}", reason)));
@@ -163,10 +165,10 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
     }
     banList.addBan(profile, reason, (Instant) null, sender.getName());
     plugin.getHistoryManager().addEntry(uuid, HistoryType.BAN, reason, sender.getName());
-    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-      "<red>[BAN] <white>" + name + " <gray>was banned by <white>" + sender.getName()
-      + " <dark_gray>(" + reason + ")"),
-      "mod.ban");
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getBanBroadcast()
+      .replace("{target}", name)
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)), "mod.ban");
   }
 
   private void kick(CommandSender sender, String[] args) {
@@ -193,10 +195,10 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       .replace("{staff}", sender.getName())
       .replace("{reason}", reason)));
     plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.KICK, reason, sender.getName());
-    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(
-      "<red>[KICK] <white>" + target.getName() + " <gray>was kicked by <white>" + sender.getName()
-      + " <dark_gray>(" + reason + ")"),
-      "mod.kick");
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getKickBroadcast()
+      .replace("{target}", target.getName())
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)), "mod.kick");
   }
 
   private void unban(CommandSender sender, String[] args) {
