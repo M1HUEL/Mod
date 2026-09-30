@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
   private static final List<String> SUBCOMMANDS
-    = Arrays.asList("warn", "ban", "kick", "unban", "history", "clear", "reload");
+    = Arrays.asList("warn", "ban", "kick", "mute", "unmute", "unban", "history", "clear", "reload");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -54,6 +54,10 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         ban(sender, args);
       case "kick" ->
         kick(sender, args);
+      case "mute" ->
+        mute(sender, args);
+      case "unmute" ->
+        unmute(sender, args);
       case "unban" ->
         unban(sender, args);
       case "history" ->
@@ -75,6 +79,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
     }
     plugin.getModConfig().reload();
     plugin.getHistoryManager().reload();
+    plugin.getMutesManager().reload();
     sender.sendMessage(MINI_MESSAGE.deserialize("<green>Mod configuration reloaded."));
   }
 
@@ -201,6 +206,64 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       .replace("{reason}", reason)), "mod.kick");
   }
 
+  private void mute(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.mute")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <reason...>"));
+      return;
+    }
+    Player target = Bukkit.getPlayerExact(args[1]);
+    if (target == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
+      return;
+    }
+    String reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    if (reason.isEmpty()) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod mute <player> <reason...>"));
+      return;
+    }
+    if (plugin.getMutesManager().isMuted(target.getUniqueId())) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is already muted."));
+      return;
+    }
+
+    plugin.getMutesManager().mute(target.getUniqueId(), target.getName(), reason, sender.getName());
+    plugin.getHistoryManager().addEntry(target.getUniqueId(), HistoryType.MUTE, reason, sender.getName());
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getMuteBroadcast()
+      .replace("{target}", target.getName())
+      .replace("{staff}", sender.getName())
+      .replace("{reason}", reason)), "mod.mute");
+  }
+
+  private void unmute(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.mute")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod unmute <player>"));
+      return;
+    }
+    OfflinePlayer offline = Bukkit.getOfflinePlayerIfCached(args[1]);
+    if (offline == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>was never seen on this server."));
+      return;
+    }
+    UUID uuid = offline.getUniqueId();
+    if (!plugin.getMutesManager().isMuted(uuid)) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not muted."));
+      return;
+    }
+    String name = offline.getName() != null ? offline.getName() : args[1];
+    plugin.getMutesManager().unmute(uuid);
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getUnmuteBroadcast()
+      .replace("{target}", name)
+      .replace("{staff}", sender.getName())), "mod.mute");
+  }
+
   private void unban(CommandSender sender, String[] args) {
     if (!sender.hasPermission("mod.ban")) {
       deny(sender);
@@ -270,7 +333,8 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
   private void usage(CommandSender sender) {
     sender.sendMessage(MINI_MESSAGE.deserialize(
       "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <reason...> | /mod kick <player> <reason...>"
-      + " | /mod unban <player> | /mod clear <player> | /mod history <player> | /mod reload"));
+      + " | /mod mute <player> <reason...> | /mod unmute <player> | /mod unban <player>"
+      + " | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 
   private void deny(CommandSender sender) {

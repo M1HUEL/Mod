@@ -13,6 +13,9 @@ public final class ModConfig {
   private String kickMessage;
   private String kickBroadcast;
   private String warningsKickMessage;
+  private String muteMessage;
+  private String muteBroadcast;
+  private String unmuteBroadcast;
   private String reportFormat;
 
   public ModConfig(JavaPlugin plugin) {
@@ -37,6 +40,12 @@ public final class ModConfig {
       .getString("kick-broadcast", "<red>[KICK] <white>{target}<gray> was kicked by <white>{staff}<dark_gray> ({reason})");
     warningsKickMessage = plugin.getConfig()
       .getString("warnings-kick-message", "<red>You have been kicked for receiving too many warnings.");
+    muteMessage = plugin.getConfig()
+      .getString("mute-message", "<red>You are muted.<newline><gray>Reason: <white>{reason}");
+    muteBroadcast = plugin.getConfig()
+      .getString("mute-broadcast", "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<dark_gray> ({reason})");
+    unmuteBroadcast = plugin.getConfig()
+      .getString("unmute-broadcast", "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}");
     reportFormat = plugin.getConfig()
       .getString("report-format", "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}");
   }
@@ -75,5 +84,17 @@ public final class ModConfig {
 
   public String getReportFormat() {
     return reportFormat;
+  }
+
+  public String getMuteMessage() {
+    return muteMessage;
+  }
+
+  public String getMuteBroadcast() {
+    return muteBroadcast;
+  }
+
+  public String getUnmuteBroadcast() {
+    return unmuteBroadcast;
   }
 }

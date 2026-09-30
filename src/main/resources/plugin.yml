@@ -29,6 +29,9 @@ permissions:
   mod.kick:
     description: Allows kicking players.
     default: op
+  mod.mute:
+    description: Allows muting and unmuting players.
+    default: op
   mod.history:
     description: Allows viewing a player's history.
     default: op

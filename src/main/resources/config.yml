@@ -22,5 +22,14 @@ kick-broadcast: "<red>[KICK] <white>{target}<gray> was kicked by <white>{staff}<
 # Kick reason used when the maximum number of warnings is reached.
 warnings-kick-message: "<red>You have been kicked for receiving too many warnings."
 
+# Message shown to a muted player when they try to chat. Placeholder: {reason}.
+mute-message: "<red>You are muted.<newline><gray>Reason: <white>{reason}"
+# Announcement sent to the staff when a player is muted.
+# Placeholders: {target}, {staff} and {reason}.
+mute-broadcast: "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<dark_gray> ({reason})"
+# Announcement sent to the staff when a player is unmuted.
+# Placeholders: {target} and {staff}.
+unmute-broadcast: "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}"
+
 # Format used by /report. Placeholders: {player}, {target} and {reason}.
 report-format: "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}"
