@@ -29,8 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class ModCommand implements CommandExecutor, TabCompleter {
 
-  private static final List<String> SUBCOMMANDS
-    = Arrays.asList("warn", "ban", "kick", "mute", "unmute", "unban", "history", "clear", "reload");
+  private static final List<String> SUBCOMMANDS = Arrays.asList("warn", "ban", "kick", "mute", "unmute",
+    "freeze", "unfreeze", "vanish", "unban", "history", "clear", "reload");
   private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
 
   private final ModPlugin plugin;
@@ -58,6 +58,12 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
         kick(sender, args);
       case "mute" ->
         mute(sender, args);
+      case "freeze" ->
+        freeze(sender, args);
+      case "unfreeze" ->
+        unfreeze(sender, args);
+      case "vanish" ->
+        vanish(sender);
       case "unmute" ->
         unmute(sender, args);
       case "unban" ->
@@ -250,6 +256,76 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       .replace("{expiry}", DurationParser.formatExpiry(duration, plugin.getModConfig().getPermanentText()))), "mod.mute");
   }
 
+  private void freeze(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.freeze")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod freeze <player>"));
+      return;
+    }
+    Player target = Bukkit.getPlayerExact(args[1]);
+    if (target == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
+      return;
+    }
+    if (plugin.getFreezesManager().isFrozen(target.getUniqueId())) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is already frozen."));
+      return;
+    }
+
+    plugin.getFreezesManager().freeze(target.getUniqueId());
+    target.sendMessage(MINI_MESSAGE.deserialize(plugin.getModConfig().getFreezeMessage()));
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getFreezeBroadcast()
+      .replace("{target}", target.getName())
+      .replace("{staff}", sender.getName())), "mod.freeze");
+  }
+
+  private void unfreeze(CommandSender sender, String[] args) {
+    if (!sender.hasPermission("mod.freeze")) {
+      deny(sender);
+      return;
+    }
+    if (args.length < 2) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Usage: /mod unfreeze <player>"));
+      return;
+    }
+    Player target = Bukkit.getPlayerExact(args[1]);
+    if (target == null) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not online."));
+      return;
+    }
+    if (!plugin.getFreezesManager().isFrozen(target.getUniqueId())) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Player <white>" + args[1] + " <red>is not frozen."));
+      return;
+    }
+
+    plugin.getFreezesManager().unfreeze(target.getUniqueId());
+    plugin.getServer().broadcast(MINI_MESSAGE.deserialize(plugin.getModConfig().getUnfreezeBroadcast()
+      .replace("{target}", target.getName())
+      .replace("{staff}", sender.getName())), "mod.freeze");
+  }
+
+  private void vanish(CommandSender sender) {
+    if (!sender.hasPermission("mod.vanish")) {
+      deny(sender);
+      return;
+    }
+    if (!(sender instanceof Player player)) {
+      sender.sendMessage(MINI_MESSAGE.deserialize("<red>Only players can vanish."));
+      return;
+    }
+    boolean vanished = plugin.getVanishManager().isVanished(player.getUniqueId());
+    if (vanished) {
+      plugin.getVanishManager().unvanish(player);
+    } else {
+      plugin.getVanishManager().vanish(player);
+    }
+    sender.sendMessage(MINI_MESSAGE.deserialize(plugin.getModConfig().getVanishMessage()
+      .replace("{state}", vanished ? "disabled" : "enabled")));
+  }
+
   private void unmute(CommandSender sender, String[] args) {
     if (!sender.hasPermission("mod.mute")) {
       deny(sender);
@@ -346,7 +422,8 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
     sender.sendMessage(MINI_MESSAGE.deserialize(
       "<red>Usage: /mod warn <player> <reason...> | /mod ban <player> <duration> <reason...>"
       + " | /mod kick <player> <reason...> | /mod mute <player> <duration> <reason...>"
-      + " | /mod unmute <player> | /mod unban <player>"
+      + " | /mod unmute <player> | /mod freeze <player> | /mod unfreeze <player> | /mod vanish"
+      + " | /mod unban <player>"
       + " | /mod clear <player> | /mod history <player> | /mod reload"));
   }
 
@@ -376,7 +453,7 @@ public final class ModCommand implements CommandExecutor, TabCompleter {
       if (sub.equals("warn") && !args[1].isEmpty()) {
         return List.of("clear");
       }
-      if (sub.equals("reload")) {
+      if (sub.equals("reload") || sub.equals("vanish")) {
         return Collections.emptyList();
       }
       if (SUBCOMMANDS.contains(sub)) {

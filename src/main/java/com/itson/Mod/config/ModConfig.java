@@ -16,6 +16,10 @@ public final class ModConfig {
   private String muteMessage;
   private String muteBroadcast;
   private String unmuteBroadcast;
+  private String freezeMessage;
+  private String freezeBroadcast;
+  private String unfreezeBroadcast;
+  private String vanishMessage;
   private String reportFormat;
   private String permanentText;
 
@@ -47,6 +51,14 @@ public final class ModConfig {
       .getString("mute-broadcast", "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<dark_gray> ({reason})");
     unmuteBroadcast = plugin.getConfig()
       .getString("unmute-broadcast", "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}");
+    freezeMessage = plugin.getConfig()
+      .getString("freeze-message", "<red>You have been frozen. Do not move.");
+    freezeBroadcast = plugin.getConfig()
+      .getString("freeze-broadcast", "<red>[FREEZE] <white>{target}<gray> was frozen by <white>{staff}");
+    unfreezeBroadcast = plugin.getConfig()
+      .getString("unfreeze-broadcast", "<green>[UNFREEZE] <white>{target}<gray> was unfrozen by <white>{staff}");
+    vanishMessage = plugin.getConfig()
+      .getString("vanish-message", "<green>Vanish {state}.");
     reportFormat = plugin.getConfig()
       .getString("report-format", "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}");
     permanentText = plugin.getConfig().getString("permanent-text", "never");
@@ -102,5 +114,21 @@ public final class ModConfig {
 
   public String getUnmuteBroadcast() {
     return unmuteBroadcast;
+  }
+
+  public String getFreezeMessage() {
+    return freezeMessage;
+  }
+
+  public String getFreezeBroadcast() {
+    return freezeBroadcast;
+  }
+
+  public String getUnfreezeBroadcast() {
+    return unfreezeBroadcast;
+  }
+
+  public String getVanishMessage() {
+    return vanishMessage;
   }
 }

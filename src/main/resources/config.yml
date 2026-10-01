@@ -34,5 +34,15 @@ mute-broadcast: "<red>[MUTE] <white>{target}<gray> was muted by <white>{staff}<d
 # Placeholders: {target} and {staff}.
 unmute-broadcast: "<green>[UNMUTE] <white>{target}<gray> was unmuted by <white>{staff}"
 
+# Message shown to a frozen player when they try to move.
+freeze-message: "<red>You have been frozen. Do not move."
+# Announcement sent to the staff when a player is frozen. Placeholders: {target} and {staff}.
+freeze-broadcast: "<red>[FREEZE] <white>{target}<gray> was frozen by <white>{staff}"
+# Announcement sent to the staff when a player is unfrozen. Placeholders: {target} and {staff}.
+unfreeze-broadcast: "<green>[UNFREEZE] <white>{target}<gray> was unfrozen by <white>{staff}"
+
+# Message shown to staff when toggling vanish. Placeholder: {state}.
+vanish-message: "<green>Vanish {state}."
+
 # Format used by /report. Placeholders: {player}, {target} and {reason}.
 report-format: "<gold>[REPORT]<reset> <white>{player}<gray> reported <white>{target}<gray>: <white>{reason}"

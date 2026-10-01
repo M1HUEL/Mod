@@ -32,6 +32,12 @@ permissions:
   mod.mute:
     description: Allows muting and unmuting players.
     default: op
+  mod.freeze:
+    description: Allows freezing and unfreezing players.
+    default: op
+  mod.vanish:
+    description: Allows toggling vanish.
+    default: op
   mod.history:
     description: Allows viewing a player's history.
     default: op
